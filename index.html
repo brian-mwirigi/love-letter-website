@@ -1,42 +1,59 @@
 ﻿<!DOCTYPE html>
-<html lang="en">
+<html lang="zh-CN">
 <head>
   <!-- Meta Tags -->
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <meta name="description" content="A romantic love letter website with beautiful animations">
+  <meta name="description" content="一封浪漫的情书，记录我们在一起的每一天">
   <meta name="author" content="qzydustin">
-  
+  <meta name="theme-color" content="#ffe">
+
+  <!-- Open Graph -->
+  <meta property="og:title" content="Love Letter | 情书">
+  <meta property="og:description" content="一封浪漫的情书，记录我们在一起的每一天">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://love.qzydustin.com">
+
   <!-- Title & Resources -->
-  <title>Love Letter</title>
+  <title>Love Letter | 情书</title>
   <link rel="stylesheet" href="styles.css">
   <link rel="icon" type="image/svg+xml" href="favicon.svg">
-  
-  <!-- Configuration -->
   <script src="config.js"></script>
 </head>
 <body>
   <!-- Background Music -->
-  <audio loop id="bgm" aria-label="Background music">
+  <audio loop id="bgm" preload="auto" aria-label="Background music">
     <source src="bgm.mp3" type="audio/mpeg">
   </audio>
   
   <!-- Main Container -->
-  <div id="main">
-    <!-- Love Letter Content -->
-    <div id="letter" role="article"></div>
-    
-    <!-- Time Counter -->
-    <div id="clock-box" role="timer">
-      <div id="clock-text"></div>
-      <div id="clock"></div>
+  <div id="viewport">
+    <div id="main">
+      <!-- Love Letter Content -->
+      <div id="letter" role="article"></div>
+      
+      <!-- Time Counter -->
+      <div id="clock-box" role="timer">
+        <div id="clock-text"></div>
+        <div id="clock"></div>
+      </div>
+      
+      <!-- Ground Canvas -->
+      <canvas id="ground-canvas" aria-hidden="true"></canvas>
+
+      <!-- Static Canvas (tree) -->
+      <canvas id="static-canvas" aria-hidden="true"></canvas>
+
+      <!-- Dynamic Canvas (falling hearts) -->
+      <canvas id="canvas" aria-label="Animated tree with hearts"></canvas>
     </div>
-    
-    <!-- Animation Canvas -->
-    <canvas id="canvas" aria-label="Animated tree with hearts"></canvas>
   </div>
   
   <!-- Main Script -->
-  <script src="main.js"></script>
+  <script src="js/geometry.js"></script>
+  <script src="js/animation.js"></script>
+  <script src="js/tree.js"></script>
+  <script src="js/ui.js"></script>
+  <script src="js/main.js"></script>
 </body>
 </html>
