@@ -2,20 +2,23 @@
 // Clock Display
 // ===========================
 
-const createClockDOM = (config) => {
+function createClockDOM(config) {
   const clock = document.getElementById("clock");
   const cfg = config.time;
   const digits = {};
   clock.textContent = "";
 
-  const addText = (text) => clock.appendChild(document.createTextNode(text));
-  const addDigit = (key) => {
+  function addText(text) {
+    clock.appendChild(document.createTextNode(text));
+  }
+
+  function addDigit(key) {
     const span = document.createElement("span");
     span.className = "digit";
     clock.appendChild(span);
     digits[key] = span;
     return span;
-  };
+  }
 
   addText(cfg.prefix);
   addDigit("days");
@@ -28,31 +31,40 @@ const createClockDOM = (config) => {
   addText(` ${cfg.second}`);
 
   return digits;
-};
+}
 
-const timeElapse = (startMs, digits) => {
-  let seconds = (Date.now() - startMs) / 1000;
-  const days = Math.floor(seconds / (3600 * 24));
-  seconds %= 3600 * 24;
-  const hours = Math.floor(seconds / 3600).toString().padStart(2, "0");
-  seconds %= 3600;
-  const minutes = Math.floor(seconds / 60).toString().padStart(2, "0");
-  seconds = Math.floor(seconds % 60).toString().padStart(2, "0");
+function timeElapse(startMs, digits) {
+  const secondsPerMinute = 60;
+  const secondsPerHour = secondsPerMinute * 60;
+  const secondsPerDay = secondsPerHour * 24;
+
+  function twoDigits(value) {
+    return String(value).padStart(2, "0");
+  }
+
+  const totalSeconds = Math.floor((Date.now() - startMs) / 1000);
+  const todaySeconds = totalSeconds % secondsPerDay;
+  const days = Math.floor(totalSeconds / secondsPerDay);
+
+  const hours = Math.floor(todaySeconds / secondsPerHour);
+  const minutes = Math.floor((todaySeconds % secondsPerHour) / secondsPerMinute);
+  const seconds = todaySeconds % secondsPerMinute;
+
   digits.days.textContent = String(days);
-  digits.hours.textContent = hours;
-  digits.minutes.textContent = minutes;
-  digits.seconds.textContent = seconds;
-};
+  digits.hours.textContent = twoDigits(hours);
+  digits.minutes.textContent = twoDigits(minutes);
+  digits.seconds.textContent = twoDigits(seconds);
+}
 
 // ===========================
 // Responsive Scaling
 // ===========================
 
-const scaleContent = () => {
+function scaleContent() {
   const viewport = document.getElementById("viewport");
   const main = document.getElementById("main");
 
-  const observer = new ResizeObserver(() => {
+  function resize() {
     const scale = Math.min(
       window.innerWidth / StageConfig.width,
       window.innerHeight / StageConfig.height,
@@ -61,53 +73,58 @@ const scaleContent = () => {
     viewport.style.width = `${StageConfig.width * scale}px`;
     viewport.style.height = `${StageConfig.height * scale}px`;
     main.style.transform = `scale(${scale})`;
-  });
+  }
 
-  observer.observe(document.documentElement);
-};
+  resize();
+  window.addEventListener("resize", resize);
+}
 
 // ===========================
 // Content Initialization
 // ===========================
 
-const initContent = (config) => {
+function initContent(config) {
   const letter = document.getElementById("letter");
   letter.textContent = "";
-  const { paragraph1, paragraph2, paragraph3 } = config.letter;
 
-  const addParagraph = (lines) => {
+  function addParagraph(lines) {
     lines.forEach(line => {
       const p = document.createElement("p");
       p.textContent = line;
       letter.appendChild(p);
     });
-  };
+  }
 
-  addParagraph(paragraph1);
-  letter.appendChild(document.createElement("br"));
-  addParagraph(paragraph2);
-  letter.appendChild(document.createElement("br"));
-  addParagraph(paragraph3);
+  function createName(text) {
+    const span = document.createElement("span");
+    span.className = "name";
+    span.textContent = text;
+    return span;
+  }
+
+  const paragraphs = [
+    config.letter.paragraph1,
+    config.letter.paragraph2,
+    config.letter.paragraph3
+  ];
+  paragraphs.forEach((lines, index) => {
+    if (index > 0) letter.appendChild(document.createElement("br"));
+    addParagraph(lines);
+  });
 
   const clockText = document.getElementById("clock-text");
   clockText.textContent = "";
-  const name1 = document.createElement("span");
-  name1.className = "name";
-  name1.textContent = config.couple.name1;
-  const name2 = document.createElement("span");
-  name2.className = "name";
-  name2.textContent = config.couple.name2;
-  clockText.appendChild(name1);
+  clockText.appendChild(createName(config.couple.name1));
   clockText.appendChild(document.createTextNode(` ${config.couple.connector} `));
-  clockText.appendChild(name2);
+  clockText.appendChild(createName(config.couple.name2));
   clockText.appendChild(document.createTextNode(` ${config.couple.together}`));
-};
+}
 
 // ===========================
 // Canvas Initialization
 // ===========================
 
-const initCanvas = (id) => {
+function initCanvas(id) {
   const canvas = document.getElementById(id);
   const { width: w, height: h } = StageConfig;
   const dpr = window.devicePixelRatio || 1;
@@ -117,4 +134,4 @@ const initCanvas = (id) => {
   canvas.style.height = h + "px";
   canvas.getContext("2d").scale(dpr, dpr);
   return canvas;
-};
+}

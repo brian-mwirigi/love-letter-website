@@ -1,16 +1,17 @@
 // ===========================
-// Show Letter & Start Timer
+// Show Letter & Start Clock
 // ===========================
 
-function showLoveLetterAndTime(config) {
-  const startMs = new Date(config.memorialDate).getTime();
-  const digits = createClockDOM(config);
-  typewriter(document.getElementById("letter"));
-  document.getElementById("clock-box").style.opacity = 1;
-  return { startMs, digits };
+function showLoveLetter() {
+  const letter = document.getElementById("letter");
+  const clockBox = document.getElementById("clock-box");
+  typewriter(letter);
+  clockBox.classList.add("clock-box--visible");
 }
 
-function startTimeUpdate(startMs, digits) {
+function startClock(config) {
+  const startMs = new Date(config.memorialDate).getTime();
+  const digits = createClockDOM(config);
   timeElapse(startMs, digits);
   setInterval(() => timeElapse(startMs, digits), AnimationConfig.TIME_UPDATE_INTERVAL);
 }
@@ -19,15 +20,22 @@ function startTimeUpdate(startMs, digits) {
 // Main Initialization
 // ===========================
 
-document.addEventListener("DOMContentLoaded", async () => {
+async function startApp() {
   initContent(CONFIG);
 
   const staticCanvas = initCanvas("static-canvas");
   const groundCanvas = initCanvas("ground-canvas");
   const dynamicCanvas = initCanvas("canvas");
 
-  const { width: w, height: h } = StageConfig;
-  const tree = new Tree(staticCanvas, dynamicCanvas, groundCanvas, w, h, TreeShape, CONFIG);
+  const tree = new Tree(
+    staticCanvas,
+    dynamicCanvas,
+    groundCanvas,
+    StageConfig.width,
+    StageConfig.height,
+    TreeShape,
+    CONFIG
+  );
   const { seed, footer } = tree;
 
   scaleContent();
@@ -44,8 +52,9 @@ document.addEventListener("DOMContentLoaded", async () => {
   footer.draw();
   await animateTreeMove(staticCanvas);
 
-  const { startMs, digits } = showLoveLetterAndTime(CONFIG);
-
+  showLoveLetter();
   startHeartJumpAnimation(tree);
-  startTimeUpdate(startMs, digits);
-});
+  startClock(CONFIG);
+}
+
+document.addEventListener("DOMContentLoaded", startApp);

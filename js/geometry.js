@@ -2,21 +2,33 @@
 // Geometry Primitives
 // ===========================
 
-const random = (min, max) => min + Math.floor(Math.random() * (max - min + 1));
-const randomFloat = (min, max) => min + Math.random() * (max - min);
+function randomInt(min, max) {
+  return min + Math.floor(Math.random() * (max - min + 1));
+}
 
-const bezier = (cp, t) => {
-  const [p0, p1, p2] = cp;
-  return p0.mul((1 - t) ** 2).add(p1.mul(2 * t * (1 - t))).add(p2.mul(t ** 2));
-};
+function randomFloat(min, max) {
+  return min + Math.random() * (max - min);
+}
 
-const inheart = (x, y, r) => {
-  const [nx, ny] = [x / r, y / r];
+function bezier(points, t) {
+  const p0 = points[0];
+  const p1 = points[1];
+  const p2 = points[2];
+  const s = 1 - t;
+  return new Point(
+    p0.x * s * s + 2 * p1.x * s * t + p2.x * t * t,
+    p0.y * s * s + 2 * p1.y * s * t + p2.y * t * t
+  );
+}
+
+function inHeart(x, y, r) {
+  const nx = x / r;
+  const ny = y / r;
   return (nx ** 2 + ny ** 2 - 1) ** 3 - nx ** 2 * ny ** 3 < 0;
-};
+}
 
 // ===========================
-// Point — 2D vector with basic arithmetic
+// Point — 2D coordinate
 // ===========================
 
 class Point {
@@ -24,12 +36,11 @@ class Point {
     this.x = x;
     this.y = y;
   }
-  clone() { return new Point(this.x, this.y); }
-  add(o) { return new Point(this.x + o.x, this.y + o.y); }
-  sub(o) { return new Point(this.x - o.x, this.y - o.y); }
-  div(n) { return new Point(this.x / n, this.y / n); }
-  mul(n) { return new Point(this.x * n, this.y * n); }
-  set(x, y) { this.x = x; this.y = y; return this; }
+
+  set(x, y) {
+    this.x = x;
+    this.y = y;
+  }
 }
 
 // ===========================
@@ -39,33 +50,30 @@ class Point {
 class Heart {
   constructor() {
     this.points = [];
-    for (let i = 10; i < 30; i += 0.2) {
-      const t = i / Math.PI;
+    for (let angle = 10; angle < 30; angle += 0.2) {
+      const t = angle / Math.PI;
       const x = 16 * Math.sin(t) ** 3;
       const y = 13 * Math.cos(t) - 5 * Math.cos(2 * t) - 2 * Math.cos(3 * t) - Math.cos(4 * t);
       this.points.push(new Point(x, y));
     }
-    this.length = this.points.length;
-    this.path = this.buildPath(1);
+    this.path = this.buildPath();
   }
 
-  get(i, scale = 1) { return this.points[i].mul(scale); }
-
-  buildPath(scale) {
+  buildPath() {
     const path = new Path2D();
-    const pts = this.points;
-    const p0x = pts[0].x * scale;
-    const p0y = -pts[0].y * scale;
+    const points = this.points;
+    const p0x = points[0].x;
+    const p0y = -points[0].y;
     path.moveTo(p0x, p0y);
-    for (let i = 0; i < pts.length - 1; i++) {
-      const cx = pts[i].x * scale;
-      const cy = -pts[i].y * scale;
-      const nx = pts[i + 1].x * scale;
-      const ny = -pts[i + 1].y * scale;
+    for (let i = 0; i < points.length - 1; i++) {
+      const cx = points[i].x;
+      const cy = -points[i].y;
+      const nx = points[i + 1].x;
+      const ny = -points[i + 1].y;
       path.quadraticCurveTo(cx, cy, (cx + nx) / 2, (cy + ny) / 2);
     }
-    const last = pts[pts.length - 1];
-    path.quadraticCurveTo(last.x * scale, -last.y * scale, p0x, p0y);
+    const last = points[points.length - 1];
+    path.quadraticCurveTo(last.x, -last.y, p0x, p0y);
     path.closePath();
     return path;
   }

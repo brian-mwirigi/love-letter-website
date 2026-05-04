@@ -124,6 +124,10 @@ body {
   z-index: 3;
 }
 
+#clock-box.clock-box--visible {
+  opacity: 1;
+}
+
 #clock-text {
   color: var(--date-color);
 }

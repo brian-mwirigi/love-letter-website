@@ -79,46 +79,43 @@ class Seed {
     this.tree = tree;
     this.config = config;
     this.heart = { point, scale, color, figure: new Heart() };
-    this.circle = { point, scale, color, radius: 5 };
+    this.circle = { point: new Point(point.x, point.y), scale, color, radius: 5 };
   }
 
-  draw = () => {
+  draw() {
     this.drawHeart();
     this.drawText();
-  };
+  }
 
-  addPosition = (x, y) => {
-    this.circle.point = this.circle.point.add(new Point(x, y));
-  };
+  canMove() { return this.circle.point.y < this.tree.height + 20; }
+  canScale() { return this.heart.scale > 0.2; }
 
-  canMove = () => this.circle.point.y < this.tree.height + 20;
-  canScale = () => this.heart.scale > 0.2;
-
-  move = (x, y) => {
+  move(x, y) {
     this.clear();
     this.drawCircle();
-    this.addPosition(x, y);
-  };
+    const { point } = this.circle;
+    point.set(point.x + x, point.y + y);
+  }
 
-  scale = (s) => {
+  scale(s) {
     this.clear();
     this.drawCircle();
     this.drawHeart();
     this.heart.scale *= s;
-  };
+  }
 
-  drawHeart = () => {
+  drawHeart() {
     const { ctx } = this.tree;
     const { point, color, scale, figure } = this.heart;
-    const path = figure.buildPath(scale);
     ctx.save();
     ctx.fillStyle = color;
     ctx.translate(point.x, point.y);
-    ctx.fill(path);
+    ctx.scale(scale, scale);
+    ctx.fill(figure.path);
     ctx.restore();
-  };
+  }
 
-  drawCircle = () => {
+  drawCircle() {
     const { ctx } = this.tree;
     const { point, color, scale, radius } = this.circle;
     ctx.save();
@@ -130,9 +127,9 @@ class Seed {
     ctx.closePath();
     ctx.fill();
     ctx.restore();
-  };
+  }
 
-  drawText = () => {
+  drawText() {
     const { ctx } = this.tree;
     const { point, color, scale } = this.heart;
     const text = this.config.seedText || "Love";
@@ -151,20 +148,20 @@ class Seed {
     ctx.font = '12px sans-serif';
     ctx.fillText(text, 23, 10);
     ctx.restore();
-  };
+  }
 
-  clear = () => {
+  clear() {
     const { ctx } = this.tree;
     const { point, scale } = this.circle;
     const w = 26 * scale, h = 26 * scale;
     ctx.clearRect(point.x - w, point.y - h, 4 * w, 4 * h);
-  };
+  }
 
-  hover = (x, y) => {
+  hover(x, y) {
     const dpr = window.devicePixelRatio || 1;
     const pixel = this.tree.ctx.getImageData(x * dpr, y * dpr, 1, 1);
     return pixel.data[3] === 255;
-  };
+  }
 }
 
 // ===========================
@@ -207,32 +204,15 @@ class Footer {
 class Branch {
   constructor(tree, p1, p2, p3, radius, steps = 100, children = []) {
     this.tree = tree;
-    this.p1 = p1;
-    this.p2 = p2;
-    this.p3 = p3;
+    this.curve = [p1, p2, p3];
     this.initialRadius = radius;
     this.steps = steps;
     this.children = children;
     this.step = 0;
   }
 
-  static segment(p1, p2, p3, t0, t1) {
-    const s0 = 1 - t0;
-    const r0x = p1.x * s0 * s0 + p2.x * 2 * s0 * t0 + p3.x * t0 * t0;
-    const r0y = p1.y * s0 * s0 + p2.y * 2 * s0 * t0 + p3.y * t0 * t0;
-    const m12x = p2.x * s0 + p3.x * t0;
-    const m12y = p2.y * s0 + p3.y * t0;
-    const localT = (t1 - t0) / (1 - t0);
-    const ls = 1 - localT;
-    const a1x = r0x * ls + m12x * localT;
-    const a1y = r0y * ls + m12y * localT;
-    const endX = r0x * ls * ls + m12x * 2 * ls * localT + p3.x * localT * localT;
-    const endY = r0y * ls * ls + m12y * 2 * ls * localT + p3.y * localT * localT;
-    return { x0: r0x, y0: r0y, cx: a1x, cy: a1y, x1: endX, y1: endY };
-  }
-
-  radiusAt(t) {
-    return this.initialRadius * Math.pow(TreeRenderConfig.radiusDecay, t * this.steps);
+  currentRadius() {
+    return this.initialRadius * Math.pow(TreeRenderConfig.radiusDecay, this.step);
   }
 
   grow() {
@@ -244,10 +224,11 @@ class Branch {
 
     const t0 = this.step / this.steps;
     const t1 = (this.step + 1) / this.steps;
-    const seg = Branch.segment(this.p1, this.p2, this.p3, t0, t1);
+    const start = bezier(this.curve, t0);
+    const end = bezier(this.curve, t1);
 
     const { ctx } = this.tree;
-    const r = this.radiusAt(t0);
+    const r = this.currentRadius();
     ctx.save();
     ctx.strokeStyle = "rgb(35, 31, 32)";
     ctx.lineWidth = r * 2;
@@ -256,8 +237,8 @@ class Branch {
     ctx.shadowColor = "rgb(35, 31, 32)";
     ctx.shadowBlur = 2;
     ctx.beginPath();
-    ctx.moveTo(seg.x0, seg.y0);
-    ctx.quadraticCurveTo(seg.cx, seg.cy, seg.x1, seg.y1);
+    ctx.moveTo(start.x, start.y);
+    ctx.lineTo(end.x, end.y);
     ctx.stroke();
     ctx.restore();
 
@@ -270,7 +251,7 @@ class Branch {
 // ===========================
 
 class Bloom {
-  constructor(tree, point, figure, color = `rgb(255,${random(0, 255)},${random(0, 255)})`,
+  constructor(tree, point, figure, color = `rgb(255,${randomInt(0, 255)},${randomInt(0, 255)})`,
     alpha = randomFloat(0.3, 1), angle = randomFloat(0, Math.PI * 2), scale = 0.1) {
     this.tree = tree;
     this.point = point;
@@ -288,13 +269,13 @@ class Bloom {
     this.spin = 0.02;
   }
 
-  flower = () => {
+  flower() {
     this.drawOn(this.tree.ctx);
     this.scale += 0.1;
-    if (this.scale > 1) this.tree.removeBloom(this);
-  };
+    return this.scale <= 1;
+  }
 
-  drawOn = (ctx) => {
+  drawOn(ctx) {
     ctx.save();
     ctx.fillStyle = this.color;
     ctx.globalAlpha = this.alpha;
@@ -303,9 +284,9 @@ class Bloom {
     ctx.rotate(this.angle);
     ctx.fill(this.figure.path);
     ctx.restore();
-  };
+  }
 
-  fall = (dt) => {
+  fall(dt) {
     const { x, y } = this.point;
     if (x < -40 || x > this.tree.width + 40 || y > this.tree.height + 40) {
       this.alpha = 0;
@@ -319,17 +300,21 @@ class Bloom {
     this.point.set(x + this.vx * f + sway, y + this.vy * f);
     this.angle += this.spin * f;
     this.alpha = Math.max(this.alpha - 0.0008 * f, 0);
-  };
+  }
 }
 
 // ===========================
 // Tree — orchestrates all canvas elements
 // ===========================
 
-const getTreeShiftX = () => {
+function getTreeShiftX() {
   const value = getComputedStyle(document.documentElement).getPropertyValue("--tree-shift-x");
   return parseFloat(value) || AnimationConfig.TREE_SHIFT_X;
-};
+}
+
+function toPoint([x, y]) {
+  return new Point(x, y);
+}
 
 class Tree {
   constructor(staticCanvas, dynamicCanvas, groundCanvas, width, height, opt = {}, config = {}) {
@@ -367,25 +352,21 @@ class Tree {
   initBloom() {
     const { num = 500, width = this.width, height = this.height } = this.opt.bloom || {};
     const figure = this.seed.heart.figure;
-    const r = 240;
-    const cache = [];
-    for (let i = 0; i < num; i++) {
-      cache.push(this.createBloom(width, height, r, figure));
-    }
     this.blooms = [];
-    this.bloomsCache = cache;
+    this.bloomsCache = Array.from(
+      { length: num },
+      () => this.createBloom(width, height, 240, figure)
+    );
     this.fallingBlooms = [];
   }
 
-  addBranch(branch) { this.branches.push(branch); }
-
   addBranches(branches) {
     branches.forEach(({ from, control, to, radius, steps, children = [] }) => {
-      this.addBranch(new Branch(
+      this.branches.push(new Branch(
         this,
-        new Point(...from),
-        new Point(...control),
-        new Point(...to),
+        toPoint(from),
+        toPoint(control),
+        toPoint(to),
         radius,
         steps,
         children
@@ -396,15 +377,13 @@ class Tree {
   removeBranch(branch) { this.branches = this.branches.filter((b) => b !== branch); }
   canGrow() { return this.branches.length > 0; }
   grow() { this.branches.forEach((b) => b?.grow()); }
-  addBloom(bloom) { this.blooms.push(bloom); }
-  removeBloom(bloom) { this.blooms = this.blooms.filter((b) => b !== bloom); }
 
   createBloom(width, height, radius, figure) {
     const maxAttempts = 1000;
     for (let attempt = 0; attempt < maxAttempts; attempt++) {
       const x = Math.random() * (width - 40) + 20;
       const y = Math.random() * (height - 40) + 20;
-      if (inheart(x - width / 2, height - (height - 40) / 2 - y, radius)) {
+      if (inHeart(x - width / 2, height - (height - 40) / 2 - y, radius)) {
         return new Bloom(this, new Point(x, y), figure);
       }
     }
@@ -414,9 +393,13 @@ class Tree {
   canFlower() { return this.bloomsCache.length > 0; }
 
   flower(num) {
-    const blooms = this.bloomsCache.splice(0, num);
-    blooms.forEach((b) => this.addBloom(b));
-    this.blooms.forEach((b) => b.flower());
+    this.blooms.push(...this.bloomsCache.splice(0, num));
+    for (let i = 0; i < this.blooms.length; i++) {
+      if (!this.blooms[i].flower()) {
+        this.blooms.splice(i, 1);
+        i--;
+      }
+    }
   }
 
   createFallingBloom() {
@@ -429,7 +412,7 @@ class Tree {
       this,
       new Point(crown.x + randomFloat(-150, 170), crown.y + randomFloat(-140, 65)),
       figure,
-      `rgb(255,${random(70, 210)},${random(90, 210)})`,
+      `rgb(255,${randomInt(70, 210)},${randomInt(90, 210)})`,
       randomFloat(0.65, 1),
       randomFloat(-0.8, 0.8),
       randomFloat(0.55, 0.95)
@@ -451,8 +434,14 @@ class Tree {
   }
 
   jump(dt) {
-    this.fallingBlooms.forEach((b) => b.fall(dt));
-    this.fallingBlooms = this.fallingBlooms.filter(b => b.alpha > 0);
+    for (let i = 0; i < this.fallingBlooms.length; i++) {
+      const bloom = this.fallingBlooms[i];
+      bloom.fall(dt);
+      if (bloom.alpha <= 0) {
+        this.fallingBlooms.splice(i, 1);
+        i--;
+      }
+    }
 
     if (this.fallingBlooms.length < AnimationConfig.MAX_FALLING_HEARTS && Math.random() < AnimationConfig.FALLING_SPAWN_CHANCE) {
       this.fallingBlooms.push(this.createFallingBloom());
