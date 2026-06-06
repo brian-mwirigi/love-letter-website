@@ -111,13 +111,6 @@ function initContent(config) {
     if (index > 0) letter.appendChild(document.createElement("br"));
     addParagraph(lines);
   });
-
-  const clockText = document.getElementById("clock-text");
-  clockText.textContent = "";
-  clockText.appendChild(createName(config.couple.name1));
-  clockText.appendChild(document.createTextNode(` ${config.couple.connector} `));
-  clockText.appendChild(createName(config.couple.name2));
-  clockText.appendChild(document.createTextNode(` ${config.couple.together}`));
 }
 
 // ===========================

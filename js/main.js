@@ -4,9 +4,7 @@
 
 function showLoveLetter() {
   const letter = document.getElementById("letter");
-  const clockBox = document.getElementById("clock-box");
   typewriter(letter);
-  clockBox.classList.add("clock-box--visible");
 }
 
 function startClock(config) {
@@ -54,7 +52,6 @@ async function startApp() {
 
   showLoveLetter();
   startHeartJumpAnimation(tree);
-  startClock(CONFIG);
 }
 
 document.addEventListener("DOMContentLoaded", startApp);
