@@ -1,40 +1,40 @@
 const CONFIG = {
   couple: {
-    name1: "Ms.Wang",
+    name1: "Amaris",
     name2: "Mr.Qi",
-    connector: "和",
-    together: "在一起"
+    connector: "and",
+    together: "have been together for"
   },
   memorialDate: "2017-12-25T00:00:00",
   letter: {
     paragraph1: [
-      "哪天我老了，还跟和你热恋一样，",
-      "桌前给你发消息，",
-      "灯盏微黄，窗外风雨千墙，",
-      "半天酿出一句我想你了，",
-      "内心的原野，",
-      "时而流星追月，时而万马奔腾。"
+      "Someday when I'm old, still deeply in love with you,",
+      "Sending you messages from my desk,",
+      "Under a dim yellow light, as storms rage outside,",
+      "Taking half a day to compose a single 'I miss you',",
+      "The wilderness within my heart,",
+      "Sometimes like meteors chasing the moon, sometimes like galloping horses."
     ],
     paragraph2: [
-      "有时有月亮，",
-      "我就做一个九曲十八弯的梦，",
-      "每个转角都与你有关，",
-      "你对我笑了一下，",
-      "醒来我就发上一天呆。"
+      "Sometimes when there's a moon,",
+      "I have a long and winding dream,",
+      "Where every corner is about you,",
+      "You smile at me for a moment,",
+      "And I wake up lost in thoughts of you all day."
     ],
     paragraph3: [
-      "现在我在长满星星的夜里，",
-      "阶前红豆坠满枝，",
-      "醉过知酒浓，",
-      "无物抵相思。"
+      "Now I am in a starry night,",
+      "With love tokens heavy on the branches,",
+      "Having been drunk, I know the strength of the wine,",
+      "Nothing compares to the yearning for you."
     ]
   },
   time: {
-    prefix: "第 ",
-    day: "天",
-    hour: "小时",
-    minute: "分钟",
-    second: "秒"
+    prefix: "",
+    day: " days ",
+    hour: " hours ",
+    minute: " minutes ",
+    second: " seconds"
   },
   seedText: "Miss You"
 };
