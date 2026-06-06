@@ -25,7 +25,6 @@ function startFrameLoop(step, interval = 16) {
   let last = 0;
   let frameId = 0;
   let running = true;
-
   function tick(now) {
     if (!running) return;
     if (now - last >= interval) {
@@ -83,7 +82,7 @@ async function waitForUserClick(seed, canvas) {
       if (e.type === "touchstart") e.preventDefault();
       const point = getCanvasPoint(e, canvas);
       if (seed.hover(point.x, point.y)) {
-        document.getElementById("bgm").play().catch(() => {});
+        document.getElementById("bgm").play().catch(() => { });
         canvas.removeEventListener("click", handler);
         canvas.removeEventListener("touchstart", handler);
         resolve();
